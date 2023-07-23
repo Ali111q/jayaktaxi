@@ -42,6 +42,7 @@ dependencies:
   card_swiper: ^3.0.1
   toast: ^0.3.0
   fluttertoast: ^8.2.2
+  faker: ^2.1.0
 
 dev_dependencies:
   flutter_test:

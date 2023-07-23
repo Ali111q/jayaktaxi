@@ -20,6 +20,7 @@ class TaxiController extends ChangeNotifier {
   CameraPosition? position;
   double lastLat = 0;
   List<Request> requrests = [];
+  Request? acceptedOrder;
   bool isAccepted = false;
   Timer? delay;
   late GoogleMapController mapController;
@@ -41,7 +42,7 @@ class TaxiController extends ChangeNotifier {
       var json = jsonDecode(event);
       if (json['state'] != 0 && json['status'] != false) {
         if (json['state'] == 2) {
-          
+          acceptedOrder = Request.fromJson(json);
         } else {
           int newIndex = requrests.length;
           var request = Request.fromJson(json);
@@ -157,6 +158,8 @@ class TaxiController extends ChangeNotifier {
     requrests.remove(request);
     _startRequestQueue();
   }
+
+  void _addUserInfo(Map<String, dynamic> json) {}
 
   void accept(Request request, BuildContext context) async {
     LatLng location = await _userLocation();

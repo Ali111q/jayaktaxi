@@ -1,3 +1,4 @@
+import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -8,6 +9,8 @@ import 'package:jayak_taxi/view/widgets/request_info_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:toast/toast.dart';
 
+import 'widgets/user_info_bottom_shhet.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -15,7 +18,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     // TODO: implement initState
@@ -72,6 +75,12 @@ class _HomeScreenState extends State<HomeScreen> {
           RequestFloatWidget(),
         ],
       ),
+      bottomSheet: controller.acceptedOrder != null
+          ? UserInfoBottomSheet()
+          : Container(
+              height: 0.1,
+              color: Colors.transparent,
+            ),
     );
   }
 }
