@@ -71,48 +71,55 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   @override
   Widget build(BuildContext context) {
     bool _isAvailable = Provider.of<TaxiController>(context).isAvailable;
-    return Container(
-      margin: EdgeInsets.all(7),
-      width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.16),
-                offset: Offset(0, 2),
-                blurRadius: 4)
-          ],
-          borderRadius: BorderRadius.circular(8)),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(),
-          if (widget.isCheck)
-            Switch(
-                value: _isAvailable,
-                onChanged: Provider.of<TaxiController>(context, listen: false)
-                    .changeIsAvailable),
-          Container(),
-          Row(
-            children: [
-              Text(
-                widget.name,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-              ),
-              Container(
-                margin: EdgeInsets.all(10),
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                    color: Color(0xffFF4100).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(10)),
-                child: Center(
-                  child: SvgPicture.asset(widget.image),
-                ),
-              ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).pushNamed('/profile');
+      },
+      child: Container(
+        margin: EdgeInsets.all(7),
+        width: MediaQuery.of(context).size.width,
+        decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.16),
+                  offset: Offset(0, 2),
+                  blurRadius: 4)
             ],
-          )
-        ],
+            borderRadius: BorderRadius.circular(8)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(),
+            if (widget.isCheck)
+              Switch(
+                  value: _isAvailable,
+                  onChanged: (value) {
+                    Provider.of<TaxiController>(context, listen: false)
+                        .changeIsAvailable(value, context);
+                  }),
+            Container(),
+            Row(
+              children: [
+                Text(
+                  widget.name,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                ),
+                Container(
+                  margin: EdgeInsets.all(10),
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                      color: Color(0xffFF4100).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10)),
+                  child: Center(
+                    child: SvgPicture.asset(widget.image),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }

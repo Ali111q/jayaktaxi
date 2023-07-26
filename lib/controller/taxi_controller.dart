@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+// import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
 import 'package:geolocator/geolocator.dart';
@@ -8,21 +9,27 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:jayak_taxi/model/request.dart';
 import 'package:jayak_taxi/service/location_service.dart';
 import 'package:jayak_taxi/utils/constant.dart';
+
 import 'package:toast/toast.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 class TaxiController extends ChangeNotifier {
   bool isAvailable = false;
+  // AudioPlayer player = AudioPlayer();
+
   double animationController = -10;
   bool iscircle = true;
   bool isChildVisable = false;
   late WebSocket socket;
   CameraPosition? position;
   double lastLat = 0;
+  double lastLng = 0;
   List<Request> requrests = [];
   Request? acceptedOrder;
   bool isAccepted = false;
   Timer? delay;
+
+  RequestState requestState = RequestState.waitting;
   late GoogleMapController mapController;
   initialController(GoogleMapController controller) {
     mapController = controller;
@@ -33,16 +40,24 @@ class TaxiController extends ChangeNotifier {
     _init();
   }
 
-  void _socketConnect() async {
+  void _socketConnect(BuildContext context) async {
     LatLng location = await _userLocation();
     socket = WebSocket(Uri.parse(webSocketUrl(location)));
 
-    socket.messages.listen((event) {
+    socket.messages.listen((event) async {
+      // await player.play(AssetSource("assets/audio/request.mp3"));
       print(event);
       var json = jsonDecode(event);
       if (json['state'] != 0 && json['status'] != false) {
         if (json['state'] == 2) {
           acceptedOrder = Request.fromJson(json);
+          requestState = RequestState.startOrder;
+        } else if (json['state'] == 3) {
+          print(
+              "########################################################################");
+          requestState = RequestState.waitting;
+          acceptedOrder = null;
+          requrests.clear();
         } else {
           int newIndex = requrests.length;
           var request = Request.fromJson(json);
@@ -75,11 +90,33 @@ class TaxiController extends ChangeNotifier {
     Stream<Position> pos = LocationService.getLocationSteam();
     pos.listen(
       (event) {
-        mapController.animateCamera(
-            CameraUpdate.newLatLng(LatLng(event.latitude, event.longitude)));
-        if (event.latitude != lastLat) {
+        if (requestState == RequestState.waitting) {
+          mapController.animateCamera(
+              CameraUpdate.newLatLng(LatLng(event.latitude, event.longitude)));
+        }
+        if (requestState == RequestState.startOrder) {
+          mapController.animateCamera(CameraUpdate.newLatLngBounds(
+              boundsFromLatLngList([
+                LatLng(event.latitude, event.longitude),
+                acceptedOrder!.from
+              ]),
+              100));
+        }
+        if (requestState == RequestState.endOredr) {
+          mapController.animateCamera(CameraUpdate.newLatLngBounds(
+              boundsFromLatLngList(
+                  [LatLng(event.latitude, event.longitude), acceptedOrder!.to]),
+              100));
+        }
+        if (event.latitude != lastLat || event.longitude != lastLng) {
           lastLat = event.latitude;
-          sendLocation(event);
+          lastLng = event.longitude;
+
+          notifyListeners();
+
+          try {
+            sendLocation(event);
+          } catch (e) {}
         }
       },
     );
@@ -92,9 +129,9 @@ class TaxiController extends ChangeNotifier {
     return _latLng;
   }
 
-  void changeIsAvailable(bool val) {
+  void changeIsAvailable(bool val, BuildContext context) {
     if (val) {
-      _socketConnect();
+      _socketConnect(context);
     } else {
       _socketDisconnect();
     }
@@ -159,8 +196,6 @@ class TaxiController extends ChangeNotifier {
     _startRequestQueue();
   }
 
-  void _addUserInfo(Map<String, dynamic> json) {}
-
   void accept(Request request, BuildContext context) async {
     LatLng location = await _userLocation();
     Map message = {
@@ -170,5 +205,31 @@ class TaxiController extends ChangeNotifier {
       'orderId': request.id
     };
     socket.send(jsonEncode(message));
+    requrests.remove(request);
+    notifyListeners();
   }
+
+  LatLngBounds boundsFromLatLngList(List<LatLng> list) {
+    assert(list.isNotEmpty);
+    double? x0, x1, y0, y1;
+    for (LatLng latLng in list) {
+      if (x0 == null) {
+        x0 = x1 = latLng.latitude;
+        y0 = y1 = latLng.longitude;
+      } else {
+        if (latLng.latitude > x1!) x1 = latLng.latitude;
+        if (latLng.latitude < x0) x0 = latLng.latitude;
+        if (latLng.longitude > y1!) y1 = latLng.longitude;
+        if (latLng.longitude < y0!) y0 = latLng.longitude;
+      }
+    }
+    return LatLngBounds(
+        northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
+  }
+}
+
+enum RequestState {
+  waitting,
+  startOrder,
+  endOredr,
 }

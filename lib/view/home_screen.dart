@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:jayak_taxi/controller/taxi_controller.dart';
+import 'package:jayak_taxi/helper/svg_to_marker.dart';
 import 'package:jayak_taxi/view/widgets/bottom_sheet.dart';
+import 'package:jayak_taxi/view/widgets/orders_bottom_sheet.dart';
 import 'package:jayak_taxi/view/widgets/request_float_widget.dart';
 import 'package:jayak_taxi/view/widgets/request_info_widget.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     // TODO: implement initState
     super.initState();
     ToastContext con = ToastContext();
+
     con.init(context);
   }
 
@@ -35,6 +38,29 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.7),
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                context: context,
+                builder: (context) => OrdersBottomSheet(),
+              );
+            },
+            child: Material(
+              elevation: 2,
+              borderRadius: BorderRadius.circular(7),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: SvgPicture.asset('assets/svgs/orders.svg'),
+              ),
+            ),
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(6.0),
@@ -67,7 +93,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             GoogleMap(
               initialCameraPosition: controller.position!,
               zoomControlsEnabled: false,
-              myLocationEnabled: true,
+              // myLocationEnabled: true,
+              markers: {
+                Marker(
+                    markerId: MarkerId('value'),
+                    icon: BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueAzure),
+                    position: LatLng(
+                        Provider.of<TaxiController>(context).lastLat,
+                        Provider.of<TaxiController>(context).lastLng))
+              },
               onMapCreated: Provider.of<TaxiController>(context, listen: false)
                   .initialController,
               myLocationButtonEnabled: false,

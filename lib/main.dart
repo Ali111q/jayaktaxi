@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:jayak_taxi/controller/taxi_controller.dart';
 import 'package:jayak_taxi/view/home_screen.dart';
+import 'package:jayak_taxi/view/profile.dart';
 import 'package:provider/provider.dart';
-import 'package:toast/toast.dart';
 
 void main() {
   runApp(MultiProvider(
@@ -37,7 +37,10 @@ class MyApp extends StatelessWidget {
         primarySwatch: createMaterialColor(Color(0xffFF4100)),
       ),
       initialRoute: '/',
-      routes: {'/': (context) => HomeScreen()},
+      routes: {
+        '/': (context) => HomeScreen(),
+        '/profile': (context) => Profile()
+      },
     );
   }
 }
