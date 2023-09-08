@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:jayak_taxi/controller/auth_controller.dart';
 import 'package:jayak_taxi/controller/taxi_controller.dart';
+import 'package:jayak_taxi/view/login.dart';
+import 'package:jayak_taxi/view/profile.dart';
 import 'package:provider/provider.dart';
 
 class HomeBottomSheet extends StatelessWidget {
@@ -11,6 +14,7 @@ class HomeBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomSheet(
+      
       backgroundColor: Colors.transparent,
       // dragHandleColor: Colors.transparent,
       // shadowColor: Colors.transparent,
@@ -40,12 +44,16 @@ class HomeBottomSheet extends StatelessWidget {
               isCheck: true,
             ),
             BottomSheetWidget(
-              name: 'اللغة',
-              image: 'assets/svgs/language.svg',
-            ),
-            BottomSheetWidget(
               name: 'اتصل بنا',
               image: 'assets/svgs/contact.svg',
+            ),
+              BottomSheetWidget(
+              name: 'تسجيل خروج',
+              image: 'assets/svgs/language.svg',
+              onTap:(){
+                Provider.of<AuthController>(context, listen: false).logout();
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder:(context) => LoginScreen(),), (route) => false);
+              },
             ),
           ],
         ),
@@ -55,14 +63,15 @@ class HomeBottomSheet extends StatelessWidget {
 }
 
 class BottomSheetWidget extends StatefulWidget {
-  const BottomSheetWidget(
+   BottomSheetWidget(
       {super.key,
       this.isCheck = false,
       required this.name,
-      required this.image});
+      required this.image, this.onTap});
   final String name;
   final String image;
   final bool isCheck;
+  final void Function()? onTap;
   @override
   State<BottomSheetWidget> createState() => _BottomSheetWidgetState();
 }
@@ -72,8 +81,8 @@ class _BottomSheetWidgetState extends State<BottomSheetWidget> {
   Widget build(BuildContext context) {
     bool _isAvailable = Provider.of<TaxiController>(context).isAvailable;
     return GestureDetector(
-      onTap: () {
-        Navigator.of(context).pushNamed('/profile');
+      onTap: widget.onTap??() {
+        Navigator.of(context).push(MaterialPageRoute(builder:(context) => Profile(),));
       },
       child: Container(
         margin: EdgeInsets.all(7),

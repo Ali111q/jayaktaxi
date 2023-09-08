@@ -21,6 +21,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+
+
   @override
   void initState() {
     // TODO: implement initState
@@ -31,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    Marker? marker =Provider.of<TaxiController>(context).marker;
     TaxiController controller = Provider.of<TaxiController>(context);
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -95,10 +97,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               zoomControlsEnabled: false,
               // myLocationEnabled: true,
               markers: {
-                Marker(
+                marker?? Marker(
                     markerId: MarkerId('value'),
-                    icon: BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueAzure),
+                    icon:  BitmapDescriptor.defaultMarker
+                    ,
                     position: LatLng(
                         Provider.of<TaxiController>(context).lastLat,
                         Provider.of<TaxiController>(context).lastLng))
@@ -117,5 +119,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               color: Colors.transparent,
             ),
     );
-  }
+  } 
+
 }

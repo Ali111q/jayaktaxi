@@ -43,6 +43,10 @@ dependencies:
   toast: ^0.3.0
   fluttertoast: ^8.2.2
   faker: ^2.1.0
+  shared_preferences: ^2.2.1
+  http: ^1.1.0
+  image_picker: ^1.0.4
+  collection: ^1.17.1
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +73,7 @@ flutter:
   assets:
     - assets/svgs/
     - assets/audio/
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

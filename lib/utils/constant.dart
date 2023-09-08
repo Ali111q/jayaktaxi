@@ -1,4 +1,9 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-String webSocketUrl(LatLng pos) =>
-    'ws://172.20.10.11:6001/taxi-socket/osamah?lat=${pos.latitude}&lng=${pos.longitude}&token=5|5pM4xvXeHW4VpZvXgHqK8Nt52Lh0jD3f5P8B1jGC';
+const String url = 'https://jayk.dorto-dev.com';
+String webSocketUrl(LatLng pos, String token) =>
+    'wss://jayk.dorto-dev.com:6001/taxi-socket/osamah?lat=${pos.latitude}&lng=${pos.longitude}&token=$token';
+
+const String loginUrl = '$url/api/auth/login';
+const String loginCheckUrl = '$url/api/auth/login/check-code';
+const String registerUrl =  '$url/api/auth/register/complete';

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:jayak_taxi/controller/auth_controller.dart';
+import 'package:jayak_taxi/model/user.dart';
 import 'package:jayak_taxi/view/widgets/car_profile.dart';
+import 'package:provider/provider.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -18,6 +21,7 @@ class _ProfileState extends State<Profile> {
   ];
   @override
   Widget build(BuildContext context) {
+    User user2 = Provider.of<AuthController>(context).user!;
     return Scaffold(
       appBar: AppBar(
           shape: RoundedRectangleBorder(
@@ -38,7 +42,7 @@ class _ProfileState extends State<Profile> {
                               border: Border.all(color: Colors.white, width: 2),
                               shape: BoxShape.circle),
                           child: CircleAvatar(
-                            backgroundColor: Colors.black,
+                            backgroundImage: NetworkImage(user2.image),
                             radius: 60,
                           ),
                         ),
@@ -46,7 +50,7 @@ class _ProfileState extends State<Profile> {
                           height: 10,
                         ),
                         Text(
-                          'احمد مصطفى عامر',
+                         user2.name,
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 26,
@@ -56,7 +60,7 @@ class _ProfileState extends State<Profile> {
                           height: 5,
                         ),
                         Text(
-                          '07723948349',
+                          user2.mobile,
                           style: TextStyle(
                               color: Colors.white,
                               fontSize: 20,

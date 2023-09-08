@@ -19,7 +19,20 @@ class UserInfoBottomSheet extends StatelessWidget {
       initialChildSize: 0.25,
       snap: true,
       maxChildSize: 0.25,
-      builder: (context, scrollController) => SingleChildScrollView(
+      builder: (context, scrollController) {
+        String data = '';
+        switch (Provider.of<TaxiController>(context).requestState) {
+          case RequestState.startOrder:
+            data = 'تم الوصول';
+            break;
+            case RequestState.inSpot:
+            data = 'بدأ الرحلة';
+            break;
+            case RequestState.inTravil:
+            data = 'تم الوصول';
+          default:
+        }
+        return SingleChildScrollView(
         controller: scrollController,
         child: Column(
           children: [
@@ -113,21 +126,35 @@ class UserInfoBottomSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                       switch (Provider.of<TaxiController>(context, listen: false).requestState) {
+          case RequestState.startOrder:
+            Provider.of<TaxiController>(context, listen: false).changeToInSpot();
+            break;
+            case RequestState.inSpot:
+                   Provider.of<TaxiController>(context, listen: false).changeToInTravel();
+
+            break;
+            case RequestState.inTravil:
+                        Provider.of<TaxiController>(context, listen: false).finishTrip();
+
+          default:
+        }
+                    },
                     child: Container(
                         width: MediaQuery.of(context).size.width * 0.3,
                         child: Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: Center(
                               child: Text(
-                            'بدأ الرحلة',
+                            data,
                             style: TextStyle(fontSize: 21),
                           )),
                         ))),
-                Container(),
-                ElevatedButton(
+               if(Provider.of<TaxiController>(context).requestState != RequestState.inTravil)   Container(),
+               if(Provider.of<TaxiController>(context).requestState != RequestState.inTravil) ElevatedButton(
                     style: ElevatedButton.styleFrom(primary: Color(0xff292424)),
-                    onPressed: () {},
+                    onPressed: () {Provider.of<TaxiController>(context, listen: false).cnacel();},
                     child: Container(
                         width: MediaQuery.of(context).size.width * 0.3,
                         child: Padding(
@@ -142,7 +169,8 @@ class UserInfoBottomSheet extends StatelessWidget {
             )
           ],
         ),
-      ),
+      );
+      },
     );
   }
 }

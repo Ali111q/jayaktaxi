@@ -16,7 +16,7 @@ import 'package:web_socket_client/web_socket_client.dart';
 class TaxiController extends ChangeNotifier {
   bool isAvailable = false;
   // AudioPlayer player = AudioPlayer();
-
+Marker? marker;
   double animationController = -10;
   bool iscircle = true;
   bool isChildVisable = false;
@@ -28,41 +28,58 @@ class TaxiController extends ChangeNotifier {
   Request? acceptedOrder;
   bool isAccepted = false;
   Timer? delay;
+  String? token;
 
   RequestState requestState = RequestState.waitting;
-  late GoogleMapController mapController;
+   GoogleMapController? mapController;
   initialController(GoogleMapController controller) {
     mapController = controller;
     notifyListeners();
   }
 
-  TaxiController() {
-    _init();
+  TaxiController(BuildContext context) {
+    _init(context);
   }
-
+  void setToken(String? token){
+    print(token);
+    this.token = token;
+    notifyListeners(); 
+  }
   void _socketConnect(BuildContext context) async {
     LatLng location = await _userLocation();
-    socket = WebSocket(Uri.parse(webSocketUrl(location)));
+    socket = WebSocket(Uri.parse(webSocketUrl(location, token!)));
 
     socket.messages.listen((event) async {
+
+        
       // await player.play(AssetSource("assets/audio/request.mp3"));
       print(event);
       var json = jsonDecode(event);
-      if (json['state'] != 0 && json['status'] != false) {
+      if (json['state'] != 0 && (json['status'] != false||json['status'] != 0 )) {
         if (json['state'] == 2) {
           acceptedOrder = Request.fromJson(json);
           requestState = RequestState.startOrder;
-        } else if (json['state'] == 3) {
-          print(
-              "########################################################################");
+        } else if (json['state'] == 3||json['state'] == 7||json['state'] == 0||json['state'] == 2) {
           requestState = RequestState.waitting;
           acceptedOrder = null;
           requrests.clear();
-        } else {
+          notifyListeners();
+        }
+        else if(json['state'] == 5){
+          requestState = RequestState.inSpot;
+          notifyListeners();
+        }
+        else if(json['state'] == 6){
+          requestState = RequestState.inTravil;
+          notifyListeners();
+        }
+         else if(json['status']==false){
+          Toast.show(json['message']);
+         }
+         else {
           int newIndex = requrests.length;
           var request = Request.fromJson(json);
           requrests.add(request);
-          print(requrests);
           notifyListeners();
           Future.delayed(Duration(seconds: 30)).then((e) {
             requrests.remove(request);
@@ -74,10 +91,11 @@ class TaxiController extends ChangeNotifier {
           _startRequestQueue();
         });
       }
-      if (json['status'] == false) {
+      if (json['status'] == false ||json['status'] ==0 ) {
         Toast.show(json['message'],
             duration: Toast.lengthShort, gravity: Toast.bottom);
       }
+    
     });
   }
 
@@ -85,33 +103,39 @@ class TaxiController extends ChangeNotifier {
     socket.close();
   }
 
-  _init() async {
+  _init(BuildContext context) async {
     position = CameraPosition(target: await _userLocation(), zoom: 16);
     Stream<Position> pos = LocationService.getLocationSteam();
     pos.listen(
       (event) {
         if (requestState == RequestState.waitting) {
-          mapController.animateCamera(
+          if (mapController!= null) {
+          mapController!.animateCamera(
               CameraUpdate.newLatLng(LatLng(event.latitude, event.longitude)));
+          }
         }
         if (requestState == RequestState.startOrder) {
-          mapController.animateCamera(CameraUpdate.newLatLngBounds(
+          if (mapController!= null) {
+          mapController!.animateCamera(CameraUpdate.newLatLngBounds(
               boundsFromLatLngList([
                 LatLng(event.latitude, event.longitude),
                 acceptedOrder!.from
               ]),
               100));
+          }
         }
         if (requestState == RequestState.endOredr) {
-          mapController.animateCamera(CameraUpdate.newLatLngBounds(
+          if (mapController!= null) {
+          mapController!.animateCamera(CameraUpdate.newLatLngBounds(
               boundsFromLatLngList(
                   [LatLng(event.latitude, event.longitude), acceptedOrder!.to]),
               100));
+          }
         }
         if (event.latitude != lastLat || event.longitude != lastLng) {
           lastLat = event.latitude;
           lastLng = event.longitude;
-
+_getMarker(context);
           notifyListeners();
 
           try {
@@ -226,10 +250,68 @@ class TaxiController extends ChangeNotifier {
     return LatLngBounds(
         northeast: LatLng(x1!, y1!), southwest: LatLng(x0!, y0!));
   }
+  void changeToInSpot()async{
+    print('object');
+      LatLng location = await _userLocation();
+    Map message = {
+      'type': 6,
+      'lat': location.latitude,
+      'lng': location.longitude,
+    };
+    socket.send(jsonEncode(message));
+    notifyListeners();
+  }
+    void changeToInTravel()async{
+      LatLng location = await _userLocation();
+    Map message = {
+      'type': 7,
+      'lat': location.latitude,
+      'lng': location.longitude,
+    };
+    socket.send(jsonEncode(message));
+    notifyListeners();
+  }
+    void finishTrip()async{
+      LatLng location = await _userLocation();
+    Map message = {
+      'type': 8,
+      'lat': location.latitude,
+      'lng': location.longitude,
+    };
+    socket.send(jsonEncode(message));
+    notifyListeners();
+  }
+    void cnacel()async{
+      LatLng location = await _userLocation();
+    Map message = {
+      'type': 5,
+      'lat': location.latitude,
+      'lng': location.longitude,
+    };
+    socket.send(jsonEncode(message));
+    notifyListeners();
+  }
+  _getMarker(BuildContext context)async{
+     BitmapDescriptor.fromAssetImage(createLocalImageConfiguration(context), "assets/images/car.png").then((value) {
+     
+        marker =    Marker(
+                    markerId: MarkerId('value'),
+                    icon:value 
+                    ,
+                    position: LatLng(
+lastLat,
+lastLng));
+ 
+     });
+
+   
+  }
 }
 
 enum RequestState {
   waitting,
   startOrder,
+  inSpot,
+  inTravil,
   endOredr,
 }

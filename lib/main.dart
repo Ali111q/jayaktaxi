@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:jayak_taxi/controller/auth_controller.dart';
 import 'package:jayak_taxi/controller/taxi_controller.dart';
 import 'package:jayak_taxi/view/home_screen.dart';
+import 'package:jayak_taxi/view/login.dart';
+import 'package:jayak_taxi/view/otp.dart';
 import 'package:jayak_taxi/view/profile.dart';
 import 'package:provider/provider.dart';
 
@@ -8,19 +11,43 @@ void main() {
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider<TaxiController>(
-          create: (context) => TaxiController()),
+          create: (context) => TaxiController(context)),
+      ChangeNotifierProvider<AuthController>(
+          create: (context) => AuthController()),
     ],
     child: MyApp(),
   ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+    bool _end = false;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+     Provider.of<AuthController>(context, listen: false)
+        .getUserFromShared()
+        .then((value) {
+
+Provider.of<TaxiController>(context, listen: false).setToken(value);
+      setState(() {
+        _end = true;
+      });
+    });
+  }
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return !_end
+        ? Container()
+        : MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'jayak taxi',
       theme: ThemeData(
@@ -36,11 +63,7 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: createMaterialColor(Color(0xffFF4100)),
       ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => HomeScreen(),
-        '/profile': (context) => Profile()
-      },
+    home: Provider.of<AuthController>(context, listen: false).user !=null? HomeScreen(): LoginScreen(),
     );
   }
 }
